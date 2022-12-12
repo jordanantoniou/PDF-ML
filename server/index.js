@@ -1,5 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import { parsePDF } from './helpers/parsers.js';
+
+const file = await parsePDF('./test/data/positive/ConfirmationStatement.pdf');
+
+console.log(file);
 
 const app = express();
 
