@@ -1,8 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import fs from 'fs';
+import { parsePDF } from './helpers/parsers.js';
 import { predict, trainClassifier } from './npl-file-processor.js';
-import { positiveTrainingData, negativeTrainingData, input } from './inputs.js';
+import { input, negativeTrainingData, positiveTrainingData } from './inputs.js';
+import fs from 'fs';
+
+const file = await parsePDF('./test/data/positive/ConfirmationStatement.pdf');
+
+console.log(file);
 
 const app = express();
 
@@ -10,7 +15,7 @@ app.use(cors());
 
 app.get('/', (req, res) => {
   //temporarily reading from static file
-  fs.readFile('test-document-130.pdf', (err, data) => {
+  fs.readFile('../test-document-130.pdf', (err, data) => {
     if (err) {
       console.log('Unable to read pdf file');
     } else {
