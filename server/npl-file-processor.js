@@ -2,18 +2,22 @@ import natural from 'natural';
 
 const classifier = new natural.BayesClassifier();
 
-export function trainClassifier(positiveTrainingData, negativeTrainingData) {
-  positiveTrainingData.forEach((item) =>
-    classifier.addDocument(item, 'positive')
-  );
-  negativeTrainingData.forEach((item) =>
-    classifier.addDocument(item, 'negative')
-  );
+export const train = (confirmationStatements, other) => {
+
+  confirmationStatements.forEach((item) => {
+    classifier.addDocument(item, 'confirmationStatement')
+  });
+
+  other.forEach((item) => {
+    classifier.addDocument(item, 'other')
+  });
 
   classifier.train();
-}
+};
 
-export function predict(input) {
-  const predictedClass = classifier.classify(input);
-  console.log(`The predicted class for is "${predictedClass}".`);
-}
+export const predict = (file) => {
+  const predictedClass = classifier.classify(file);
+
+  console.log(`The predicted class is "${predictedClass}".`);
+};
+
