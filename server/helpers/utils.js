@@ -24,11 +24,11 @@ export const parsePDF = async (filePath) => {
 export const readFilesFromDirectory = async (directory) => {
   const fileNames = fs.readdirSync(directory);
 
-  const confirmationStatements = fileNames.map(async fileName => {
+  const files = fileNames.map(async fileName => {
       const filePath = `${directory}/${fileName}`;
 
       return parsePDF(filePath);
     });
 
-  return Promise.all(confirmationStatements);
+  return Promise.all(files);
 };
