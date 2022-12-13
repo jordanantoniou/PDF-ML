@@ -1,7 +1,6 @@
 import pdf from 'pdf-parse';
 import fs from 'fs';
 
-
 const readFile = (filePath) => {
   const file = fs.readFileSync(filePath);
 
@@ -24,11 +23,11 @@ export const parsePDF = async (filePath) => {
 export const readFilesFromDirectory = async (directory) => {
   const fileNames = fs.readdirSync(directory);
 
-  const files = fileNames.map(async fileName => {
-      const filePath = `${directory}/${fileName}`;
+  const files = fileNames.map(async (fileName) => {
+    const filePath = `${directory}/${fileName}`;
 
-      return parsePDF(filePath);
-    });
+    return parsePDF(filePath);
+  });
 
   return Promise.all(files);
 };
