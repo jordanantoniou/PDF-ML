@@ -19,3 +19,15 @@ export const parsePDF = async (filePath) => {
     throw new Error(error);
   }
 };
+
+export const readFilesFromDirectory = async (directory) => {
+  const fileNames = fs.readdirSync(directory);
+
+  const files = fileNames.map(async (fileName) => {
+    const filePath = `${directory}/${fileName}`;
+
+    return parsePDF(filePath);
+  });
+
+  return Promise.all(files);
+};
