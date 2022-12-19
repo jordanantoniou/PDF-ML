@@ -1,8 +1,10 @@
 import natural from 'natural';
-import Tesseract from 'tesseract.js';
+import { promises as fs } from 'fs';
+import uniqueFilename from 'unique-filename';
 import { Poppler } from 'node-poppler';
 import { parsePDF, readFilesFromDirectory } from './file.js';
 import { findAllConfirmationStatements, findAllOthers } from './mongo.js';
+import Tesseract from 'tesseract.js';
 
 const classifier = new natural.BayesClassifier();
 const poppler = new Poppler('/opt/homebrew/bin');
@@ -27,25 +29,49 @@ export const trainModel = async () => {
   const confirmationStatements = await Promise.all(confirmationStatementBuffers.map(buffer => parsePDF(buffer)));
   const other = await Promise.all(otherBuffers.map(buffer => parsePDF(buffer)));
 
-
-  // TESSERACT EXPERIMENT **********
+  let tmpDir;
+  const prefix = 'cairo';
   const options = {
     firstPageToConvert: 1,
     lastPageToConvert: 2,
-    pngFile: true,
+    pngFile: true
+  };
+  
+  const others = [];
+
+  for (const buffer of otherBuffers) {
+    try {
+      tmpDir = await fs.mkdtemp(`./images/${prefix}-`);
+      const outputFile = uniqueFilename(tmpDir);
+
+      await poppler.pdfToCairo(buffer, outputFile, options);
+
+      const tmpImages = await readFilesFromDirectory(tmpDir);
+
+      let otherText;
+
+      for (const image of tmpImages) {
+        const { data: { text } } = await Tesseract.recognize(image);
+
+        otherText += text;
+      }
+
+      others.push(otherText);
+      
+      console.log(`Processed File: ${others.length}`);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      try {
+        if (tmpDir) await fs.rm(tmpDir, { recursive: true });
+      } catch (error) {
+        console.log(`Error removing tmpDir: ${tmpDir}, Please remove it manually, Error: ${error}`)
+      }
+    }
   };
 
-  const outputFile = `./images/IMAGE`;
-
-  await poppler.pdfToCairo(otherBuffers[0], outputFile, options);
-
-  const files = await readFilesFromDirectory('./images');
-
-  const { data: { text } } = await Tesseract.recognize(files[0]);
-
-  console.log(other[0], 'PDF PARSER -------');
-  console.log(text, 'TESSERACT +++++++');
-  // TESSERACT EXPERIMENT **********
+  console.log(others.length);
+  console.log(others[0]);
 
   train(confirmationStatements, other);
 };
