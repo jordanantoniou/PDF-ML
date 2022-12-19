@@ -16,7 +16,9 @@
     "express": "^4.18.1",
     "mongoose": "^6.6.0",
     "natural": "^5.2.4",
+    "node-poppler": "^6.1.0",
     "nodemon": "^2.0.19",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^4.0.2"
   }
 }
