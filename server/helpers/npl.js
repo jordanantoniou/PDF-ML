@@ -1,8 +1,11 @@
 import natural from 'natural';
-import { parsePDF } from './file.js';
+import Tesseract from 'tesseract.js';
+import { Poppler } from 'node-poppler';
+import { parsePDF, readFilesFromDirectory } from './file.js';
 import { findAllConfirmationStatements, findAllOthers } from './mongo.js';
 
 const classifier = new natural.BayesClassifier();
+const poppler = new Poppler('/opt/homebrew/bin');
 
 const train = (confirmationStatements, other) => {
   confirmationStatements.forEach((item) => {
@@ -23,7 +26,27 @@ export const trainModel = async () => {
 
   const confirmationStatements = await Promise.all(confirmationStatementBuffers.map(buffer => parsePDF(buffer)));
   const other = await Promise.all(otherBuffers.map(buffer => parsePDF(buffer)));
-  
+
+
+  // TESSERACT EXPERIMENT **********
+  const options = {
+    firstPageToConvert: 1,
+    lastPageToConvert: 2,
+    pngFile: true,
+  };
+
+  const outputFile = `./images/IMAGE`;
+
+  await poppler.pdfToCairo(otherBuffers[0], outputFile, options);
+
+  const files = await readFilesFromDirectory('./images');
+
+  const { data: { text } } = await Tesseract.recognize(files[0]);
+
+  console.log(other[0], 'PDF PARSER -------');
+  console.log(text, 'TESSERACT +++++++');
+  // TESSERACT EXPERIMENT **********
+
   train(confirmationStatements, other);
 };
 
