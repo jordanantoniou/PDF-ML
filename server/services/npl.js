@@ -27,11 +27,12 @@ const classify = async () => {
     for (const observation of observations) {
         const classification = classifier.classify(observation);
         
-        classifications.push({ classification, accuracy: classificationAccuracy(classification) });
+        classifications.push({ classification });
     }
 
+    console.log('Classification Complete...');
 
-    return { classifications }
+    return classifications
 };
 
 const train = async () => {
@@ -51,6 +52,8 @@ const train = async () => {
     });
 
     classifier.train();
+
+    console.log('Training Complete...')
 };
 
 export default { train, classify };

@@ -2,8 +2,8 @@ import nlpService from '../services/npl.js';
 
 const classify = async (req, res, next) => {
     try {
-        await nlpService.classify();
-        res.json({ message: 'OK' });
+        const classifications = await nlpService.classify();
+        res.json(classifications);
     } catch (e) {
         next(e);
     }
@@ -12,7 +12,7 @@ const classify = async (req, res, next) => {
 const train = async (req, res, next) => {
     try {
         await nlpService.train();
-        res.json({ message: 'OK' });
+        res.json({ message: 'Classification training was successful' });
     } catch (e) {
         next(e);
     }

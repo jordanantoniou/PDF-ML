@@ -31,7 +31,6 @@ const convertPDFToImages = async (buffer, tmpDir) => {
         await poppler.pdfToCairo(buffer, outputFile, options);
     } catch (e) {
         console.error('Error while converting PDF to Image: ', e.message);
-        throw e;
     }
 };
 
