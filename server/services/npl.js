@@ -9,7 +9,21 @@ import {
   findAllOthers,
 } from '../utils/mongo.js';
 
-const classifier = new natural.BayesClassifier();
+let classifier;
+
+natural.BayesClassifier.load(
+  './classifier/classifier.json',
+  null,
+  function (err, loadedClassifier) {
+    if (err) {
+      console.log('No Existing Classifier Found... please train');
+      classifier = new natural.BayesClassifier();
+    } else {
+      console.log('Existing Classifier Found...');
+      classifier = loadedClassifier;
+    }
+  }
+);
 
 const classify = async () => {
   const mockPDFDir = './test/data/mocks/';
@@ -51,6 +65,10 @@ const train = async () => {
   });
 
   classifier.train();
+
+  classifier.save('./classifier/classifier.json', function (err, classifier) {
+    console.log('Classifier saved to file!');
+  });
 
   const accuracy = await classificationAccuracy(
     csSplit.testing,
