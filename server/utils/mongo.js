@@ -3,6 +3,8 @@ import { ConfirmationStatement, Other } from '../models/file.js';
 import * as dotenv from 'dotenv'
 dotenv.config();
 
+mongoose.set('strictQuery', true);
+
 const connectionParams = {
     useNewUrlParser: true,
     useUnifiedTopology: true
