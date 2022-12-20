@@ -1,59 +1,91 @@
 import natural from 'natural';
-import { convertPDFsToText, readFilesFromDirectory } from '../utils/util.js';
-import { findAllConfirmationStatements, findAllOthers } from '../utils/mongo.js';
+import {
+  convertPDFsToText,
+  readFilesFromDirectory,
+  splitData,
+} from '../utils/util.js';
+import {
+  findAllConfirmationStatements,
+  findAllOthers,
+} from '../utils/mongo.js';
 
 const classifier = new natural.BayesClassifier();
 
-const classificationAccuracy = (classification) => {
-    const classifications = classifier.getClassifications(classification);
-
-    const accuracy = classifications.find((classification) => classification.label === classification);
-
-    if (accuracy) {
-        return `${accuracy.value * 100}%`;
-    }
-
-    return null;
-};
-
 const classify = async () => {
-    const mockPDFDir = './test/data/mocks/';
-    const mockPDFs = await readFilesFromDirectory(mockPDFDir);
+  const mockPDFDir = './test/data/mocks/';
+  const mockPDFs = await readFilesFromDirectory(mockPDFDir);
 
-    const observations = await convertPDFsToText(mockPDFs);
+  const observations = await convertPDFsToText(mockPDFs);
 
-    const classifications = [];
+  const classifications = [];
 
-    for (const observation of observations) {
-        const classification = classifier.classify(observation);
-        
-        classifications.push({ classification });
-    }
+  for (const observation of observations) {
+    const classification = classifier.classify(observation);
 
-    console.log('Classification Complete...');
+    classifications.push({ classification });
+  }
 
-    return classifications
+  console.log('Classification Complete...');
+
+  return classifications;
 };
 
 const train = async () => {
+  const confirmationStatementsBuffers = await findAllConfirmationStatements();
+  const othersBuffers = await findAllOthers();
 
-    const confirmationStatementsBuffers = await findAllConfirmationStatements();
-    const othersBuffers = await findAllOthers();
+  const confirmationStatements = await convertPDFsToText(
+    confirmationStatementsBuffers
+  );
+  const others = await convertPDFsToText(othersBuffers);
 
-    const confirmationStatements = await convertPDFsToText(confirmationStatementsBuffers);
-    const others = await convertPDFsToText(othersBuffers);
+  const csSplit = await splitData(confirmationStatements, 0.8);
+  const otherSplit = await splitData(others, 0.8);
 
-    confirmationStatements.forEach((cs) => {
-        classifier.addDocument(cs, 'confirmationStatement');
-    });
+  csSplit.training.forEach((cs) => {
+    classifier.addDocument(cs, 'confirmationStatement');
+  });
 
-    others.forEach((other) => {
-        classifier.addDocument(other, 'other');
-    });
+  otherSplit.training.forEach((other) => {
+    classifier.addDocument(other, 'other');
+  });
 
-    classifier.train();
+  classifier.train();
 
-    console.log('Training Complete...')
+  const accuracy = await classificationAccuracy(
+    csSplit.testing,
+    otherSplit.testing
+  );
+
+  console.log('Training Complete...');
+
+  return accuracy;
+};
+
+const classificationAccuracy = async (confirmationStatements, others) => {
+  const csTestData = confirmationStatements.map((data) => ({
+    text: data,
+    label: 'confirmationStatement',
+  }));
+  const othersTestData = others.map((data) => ({ text: data, label: 'other' }));
+
+  const testData = [...csTestData, ...othersTestData];
+
+  let correctPredictions = 0;
+
+  testData.forEach((data) => {
+    const prediction = classifier.classify(data.text);
+
+    if (prediction === data.label) {
+      correctPredictions++;
+    }
+  });
+
+  const accuracy = (correctPredictions / testData.length) * 100;
+
+  console.log(`The Classifier has an accuracy of ${accuracy}%`);
+
+  return accuracy.toFixed(2);
 };
 
 export default { train, classify };
