@@ -18,8 +18,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-      {/* <form action="/profile" method="post" encType="multipart/form-data"> */}
+      <h1 className="text-3xl font-bold underline">File Upload</h1>
       <input
         type="file"
         multiple
@@ -29,7 +28,6 @@ function App() {
           }
         }}
       />
-      {/* </form> */}
     </div>
   );
 }
