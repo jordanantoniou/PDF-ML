@@ -28,4 +28,5 @@ The MongoDB instance is used to store the PDF files used to train the classifer.
 
 ## API Documentation
 
+The Server API is documented using [Swagger](https://swagger.io/) and can be found via `http://localhost:8080/docs` when the server is running.
 
