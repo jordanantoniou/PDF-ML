@@ -19,6 +19,8 @@
     "node-poppler": "^6.1.0",
     "nodemon": "^2.0.19",
     "pdf-parse": "^1.1.1",
+    "swagger-jsdoc": "^6.2.7",
+    "swagger-ui-express": "^4.6.0",
     "tesseract.js": "^4.0.2",
     "unique-filename": "^3.0.0"
   }
