@@ -8,7 +8,7 @@ import { connectToDatabase } from './utils/mongo.js';
 const app = express();
 
 app.use(cors());
-app.use('/status', status)
+app.use('/status', status);
 app.use('/nlp', nlp);
 app.use('/storage', storage);
 

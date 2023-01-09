@@ -8,7 +8,7 @@ const poppler = new Poppler('/opt/homebrew/bin');
 const convertImagesToText = async (images) => {
   let text = '';
 
-  for (const image of images) {
+  for (const { fileName, image } of images) {
     const {
       data: { text: convertedText },
     } = await Tesseract.recognize(image);
@@ -50,9 +50,9 @@ const createTmpDir = async () => {
   return tmpDir;
 };
 
-const convertPDFsToText = async (buffers) => {
-  const texts = await Promise.all(
-    buffers.map(async (buffer) => {
+const convertPDFsToText = async (pdfs, shouldReturnFileNames = false) => {
+  return await Promise.all(
+    pdfs.map(async ({ fileName, buffer }) => {
       const tmpDir = await createTmpDir();
 
       await convertPDFToImages(buffer, tmpDir);
@@ -63,11 +63,9 @@ const convertPDFsToText = async (buffers) => {
 
       await deleteTmpDir(tmpDir);
 
-      return text;
-    })
+      return { fileName, text };
+    }),
   );
-
-  return texts;
 };
 
 const readFilesFromDirectory = async (directory) => {
@@ -76,7 +74,7 @@ const readFilesFromDirectory = async (directory) => {
   const files = fileNames.map(async (fileName) => {
     const filePath = `${directory}/${fileName}`;
 
-    return fs.readFileSync(filePath);
+    return { fileName, buffer: fs.readFileSync(filePath) };
   });
 
   return Promise.all(files);

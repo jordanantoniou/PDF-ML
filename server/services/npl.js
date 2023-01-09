@@ -22,7 +22,7 @@ natural.BayesClassifier.load(
       console.log('Existing Classifier Found...');
       classifier = loadedClassifier;
     }
-  }
+  },
 );
 
 const classify = async () => {
@@ -33,14 +33,13 @@ const classify = async () => {
 
   const classifications = [];
 
-  for (const observation of observations) {
+  for (const { fileName, text: observation } of observations) {
     const classification = classifier.classify(observation);
-
-    classifications.push({ classification });
+    classifications.push({ fileName, classification });
   }
 
   console.log('Classification Complete...');
-
+  console.log('Classifications ', classifications);
   return classifications;
 };
 
@@ -48,10 +47,16 @@ const train = async () => {
   const confirmationStatementsBuffers = await findAllConfirmationStatements();
   const othersBuffers = await findAllOthers();
 
-  const confirmationStatements = await convertPDFsToText(
-    confirmationStatementsBuffers
+  const confirmationFiles = await convertPDFsToText(
+    confirmationStatementsBuffers,
   );
-  const others = await convertPDFsToText(othersBuffers);
+  const confirmationStatements = confirmationFiles?.map(
+    ({ fileName, text }) => text,
+  );
+
+  const otherFiles = await convertPDFsToText(othersBuffers);
+
+  const others = otherFiles?.map(({ fileName, text }) => text);
 
   const csSplit = await splitData(confirmationStatements, 0.8);
   const otherSplit = await splitData(others, 0.8);
@@ -72,7 +77,7 @@ const train = async () => {
 
   const accuracy = await classificationAccuracy(
     csSplit.testing,
-    otherSplit.testing
+    otherSplit.testing,
   );
 
   console.log('Training Complete...');
