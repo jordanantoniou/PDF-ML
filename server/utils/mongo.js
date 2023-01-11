@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ConfirmationStatement, Other } from '../models/file.js';
+import { fileSchema } from '../schemas/file.js';
 import * as dotenv from 'dotenv'
 dotenv.config();
 
@@ -27,16 +27,28 @@ const connectToDatabase = () => {
     }
 };
 
-const findAllConfirmationStatements = async () => {
-    const confirmationStatements = await ConfirmationStatement.find({});
+const findAll = async () => {
+    const collections = Object.keys(mongoose.connection.collections);
 
-    return confirmationStatements.map(confirmationStatement => confirmationStatement.file);
-};
+    let allFiles = [];
 
-const findAllOthers = async () => {
-    const others = await Other.find({});
+    console.log(collections, 'COL')
+    for (const collection of collections) {
+        const Model = createModel(collection);
 
-    return others.map(other => other.file);
-};
+        const docs = await Model.find({});
 
-export { connectToDatabase, findAllConfirmationStatements, findAllOthers };
+        const files = docs.map(doc => doc.file);
+
+        allFiles.push({ collection, files });
+    };
+
+    return allFiles;
+}
+
+const createModel = (collection) => {
+    const modelName = 'File';
+    return mongoose.model(modelName, fileSchema, collection);
+}
+
+export { connectToDatabase, findAll, createModel };

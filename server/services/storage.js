@@ -1,26 +1,33 @@
-import { readFilesFromDirectory } from '../utils/util.js';
-import { ConfirmationStatement, Other } from '../models/file.js';
+import { readFilesFromDir } from '../utils/util.js';
+import { createModel } from '../utils/mongo.js';
 
-const confirmationStatementDir = './backup/confirmation-statements';
-const otherDir = './backup/other';
+const uploadDir = './uploads';
 
-const backup = async () => {
+const upload = async () => {
+  const { readFiles: dirs } = await readFilesFromDir(uploadDir, true);
 
-    const confirmationStatementBuffers = await readFilesFromDirectory(confirmationStatementDir);
-    const otherBuffers = await readFilesFromDirectory(otherDir);
-    
-    const confirmationStatements = confirmationStatementBuffers.map(buffer => new ConfirmationStatement({ file: buffer, prediction: 'confirmationStatement'}));
-    const others = otherBuffers.map(buffer => new Other({ file: buffer, prediction: 'other'}));
-  
+  for (const dir of dirs) {
+    const collection = dir.directory.split('./uploads/')[1];
+    const File = createModel(collection);
+
     try {
-      await ConfirmationStatement.deleteMany({});
-      await ConfirmationStatement.insertMany(confirmationStatements);
-      await Other.deleteMany({});
-      await Other.insertMany(others);
+      await File.deleteMany({});
+    } catch(e) {
+      console.error(`Error while removing ${collection} collection:`, e.message);
+      throw e;
+    };
+
+    const uploadFiles = dir.readFiles.map(file => {
+      return new File({ file, prediction: collection });
+    });
+
+    try {
+      await File.insertMany(uploadFiles);
     } catch (e) {
-      console.error('Error while backing up storage: ', e.message)
+      console.error(`Error while inserting files for ${collection} collection:`, e.message);
       throw e;
     }
+  }
 };
 
-export default { backup };
+export default { upload };

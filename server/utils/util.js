@@ -57,7 +57,7 @@ const convertPDFsToText = async (buffers) => {
 
       await convertPDFToImages(buffer, tmpDir);
 
-      const tmpImages = await readFilesFromDirectory(tmpDir);
+      const tmpImages = await readFilesFromDir(tmpDir);
 
       const text = await convertImagesToText(tmpImages);
 
@@ -70,16 +70,20 @@ const convertPDFsToText = async (buffers) => {
   return texts;
 };
 
-const readFilesFromDirectory = async (directory) => {
-  const fileNames = fs.readdirSync(directory);
+const readFilesFromDir = async (directory, recursive = false) => {
+  const files = fs.readdirSync(directory, { withFileTypes: true });
 
-  const files = fileNames.map(async (fileName) => {
-    const filePath = `${directory}/${fileName}`;
+  const readFiles = await Promise.all(files.map(async (file) => {
+    const path = `${directory}/${file.name}`;
 
-    return fs.readFileSync(filePath);
-  });
+    if (file.isDirectory() && recursive) {
+      return await readFilesFromDir(path, true);
+    };
 
-  return Promise.all(files);
+    return fs.readFileSync(path);
+  }));
+
+  return recursive ? { directory, readFiles } : readFiles;
 };
 
 const splitData = async (data, splitValue) => {
@@ -93,4 +97,4 @@ const splitData = async (data, splitValue) => {
   };
 };
 
-export { convertPDFsToText, readFilesFromDirectory, splitData };
+export { convertPDFsToText, readFilesFromDir, splitData };

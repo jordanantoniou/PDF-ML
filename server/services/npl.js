@@ -1,12 +1,11 @@
 import natural from 'natural';
 import {
   convertPDFsToText,
-  readFilesFromDirectory,
+  readFilesFromDir,
   splitData,
 } from '../utils/util.js';
 import {
-  findAllConfirmationStatements,
-  findAllOthers,
+  findAll,
 } from '../utils/mongo.js';
 
 let classifier;
@@ -27,7 +26,7 @@ natural.BayesClassifier.load(
 
 const classify = async () => {
   const mockPDFDir = './test/data/mocks/';
-  const mockPDFs = await readFilesFromDirectory(mockPDFDir);
+  const mockPDFs = await readFilesFromDir(mockPDFDir);
 
   const observations = await convertPDFsToText(mockPDFs);
 
@@ -45,24 +44,23 @@ const classify = async () => {
 };
 
 const train = async () => {
-  const confirmationStatementsBuffers = await findAllConfirmationStatements();
-  const othersBuffers = await findAllOthers();
 
-  const confirmationStatements = await convertPDFsToText(
-    confirmationStatementsBuffers
-  );
-  const others = await convertPDFsToText(othersBuffers);
+  const trainingFiles = await findAll();
+  const testingData = [];
 
-  const csSplit = await splitData(confirmationStatements, 0.8);
-  const otherSplit = await splitData(others, 0.8);
+  console.log(trainingFiles.length, 'LEN');
+  
+  for (const { collection, files } of trainingFiles) {
+    const convertedText = await convertPDFsToText(files);
 
-  csSplit.training.forEach((cs) => {
-    classifier.addDocument(cs, 'confirmationStatement');
-  });
+    const split = await splitData(convertedText, 0.8);
 
-  otherSplit.training.forEach((other) => {
-    classifier.addDocument(other, 'other');
-  });
+    split.training.forEach(text => {
+      classifier.addDocument(text, collection);
+    });
+
+    testingData.push({ collection, files: split.testing });
+  }
 
   classifier.train();
 
@@ -70,28 +68,30 @@ const train = async () => {
     console.log('Classifier saved to file!');
   });
 
-  const accuracy = await classificationAccuracy(
-    csSplit.testing,
-    otherSplit.testing
-  );
+  const accuracy = await classificationAccuracy(testingData);
 
   console.log('Training Complete...');
 
   return accuracy;
 };
 
-const classificationAccuracy = async (confirmationStatements, others) => {
-  const csTestData = confirmationStatements.map((data) => ({
-    text: data,
-    label: 'confirmationStatement',
-  }));
-  const othersTestData = others.map((data) => ({ text: data, label: 'other' }));
+const classificationAccuracy = async (testingData) => {
 
-  const testData = [...csTestData, ...othersTestData];
+  const testingFiles = [];
+
+  for (const { collection, files } of testingData) {
+
+    const data = files.map(file => ({
+      text: file,
+      label: collection
+    }))
+
+    testingFiles.push(...data);
+  };
 
   let correctPredictions = 0;
 
-  testData.forEach((data) => {
+  testingFiles.forEach((data) => {
     const prediction = classifier.classify(data.text);
 
     if (prediction === data.label) {
@@ -99,7 +99,7 @@ const classificationAccuracy = async (confirmationStatements, others) => {
     }
   });
 
-  const accuracy = (correctPredictions / testData.length) * 100;
+  const accuracy = (correctPredictions / testingFiles.length) * 100;
 
   console.log(`The Classifier has an accuracy of ${accuracy}%`);
 

@@ -1,12 +1,12 @@
 import storageService from '../services/storage.js';
 
-const get = async (req, res, next) => {
+const upload = async (req, res, next) => {
     try {
-        await storageService.backup();
-        res.json({ message: 'Database backup was successful' });
+        await storageService.upload();
+        res.json({ message: 'Upload was successful' });
     } catch (e) {
         next(e);
     }
 };
 
-export default { get };
+export default { upload };

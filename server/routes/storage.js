@@ -5,13 +5,13 @@ import storageController from '../controllers/storage.js';
 
 /**
  * @swagger
- * /storage/backup:
+ * /storage/upload:
  *   get:
- *     description: Backup storage using local files.
+ *     description: Upload PDF files to MongoDB
  *     responses:
  *       200:
- *         description: Returns message with status of backup.
+ *         description: Returns message with status of upload.
  */
-router.get('/backup', storageController.get);
+router.get('/upload', storageController.upload);
   
 export default router;
