@@ -45,12 +45,10 @@ const classify = async () => {
 
 const train = async () => {
 
-  const trainingFiles = await findAll();
+  const trainingData = await findAll();
   const testingData = [];
 
-  console.log(trainingFiles.length, 'LEN');
-  
-  for (const { collection, files } of trainingFiles) {
+  for (const { collection, files } of trainingData) {
     const convertedText = await convertPDFsToText(files);
 
     const split = await splitData(convertedText, 0.8);
@@ -62,11 +60,13 @@ const train = async () => {
     testingData.push({ collection, files: split.testing });
   }
 
-  classifier.train();
-
-  classifier.save('./classifier/classifier.json', function (err, classifier) {
-    console.log('Classifier saved to file!');
-  });
+  try {
+    classifier.train();
+    await classifier.save('./classifier/classifier.json');
+  } catch (e) {
+    console.error('Error while training classifier', e.message);
+    throw e;
+  }
 
   const accuracy = await classificationAccuracy(testingData);
 

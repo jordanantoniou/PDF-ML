@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js"
   },
   "type": "module",
   "keywords": [],
@@ -14,7 +14,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
-    "mongoose": "^6.6.0",
+    "mongodb": "^4.13.0",
     "natural": "^5.2.4",
     "node-poppler": "^6.1.0",
     "nodemon": "^2.0.19",

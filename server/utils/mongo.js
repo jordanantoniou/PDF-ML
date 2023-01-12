@@ -1,20 +1,15 @@
-import mongoose from 'mongoose';
-import { fileSchema } from '../schemas/file.js';
+import { MongoClient } from 'mongodb';
 import * as dotenv from 'dotenv'
 dotenv.config();
 
-mongoose.set('strictQuery', true);
+const client = new MongoClient(process.env.MONGODB_URL);
+const database = client.db(process.env.DATABASE);
 
-const connectionParams = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
-
-const connectToDatabase = () => {
+const connectToDatabase = async () => {
 
     try {
 
-        mongoose.connect(process.env.MONGODB_URL, connectionParams);
+        await client.connect();
 
         console.log('Database connected successfully');
 
@@ -28,27 +23,38 @@ const connectToDatabase = () => {
 };
 
 const findAll = async () => {
-    const collections = Object.keys(mongoose.connection.collections);
+    const collections = await database.listCollections().toArray();
+    const collectionNames = collections.map(collection => collection.name);
 
     let allFiles = [];
 
-    console.log(collections, 'COL')
-    for (const collection of collections) {
-        const Model = createModel(collection);
-
-        const docs = await Model.find({});
-
-        const files = docs.map(doc => doc.file);
+    for (const collection of collectionNames) {
+        const docs = await database.collection(collection).find({}).toArray();
+        const files = docs.map(doc => doc.file.buffer);
 
         allFiles.push({ collection, files });
     };
 
     return allFiles;
+};
+
+const insertMany = async (documents, collection) => {
+    try {
+        await database.collection(collection).insertMany(documents);
+    } catch (e) {
+        console.error(`Error while inserting many into collection ${collection}:`, e.message);
+        throw e;
+    }
+};
+
+const dropCollection = async (collection) => {
+    try {
+
+        await database.collection(collection).deleteMany({});
+    } catch (e) {
+        console.error(`Error while dropping collection ${collection}:`, e.message);
+        throw e;
+    }
 }
 
-const createModel = (collection) => {
-    const modelName = 'File';
-    return mongoose.model(modelName, fileSchema, collection);
-}
-
-export { connectToDatabase, findAll, createModel };
+export { connectToDatabase, findAll, dropCollection, insertMany };

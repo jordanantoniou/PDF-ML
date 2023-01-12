@@ -73,7 +73,7 @@ const convertPDFsToText = async (buffers) => {
 const readFilesFromDir = async (directory, recursive = false) => {
   const files = fs.readdirSync(directory, { withFileTypes: true });
 
-  const readFiles = await Promise.all(files.map(async (file) => {
+  const readFiles = await Promise.all(files.filter(file => !file.name.startsWith('.')).map(async (file) => {
     const path = `${directory}/${file.name}`;
 
     if (file.isDirectory() && recursive) {

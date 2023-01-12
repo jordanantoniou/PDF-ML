@@ -1,12 +1,12 @@
 import storageService from '../services/storage.js';
 
-const upload = async (req, res, next) => {
+const insert = async (req, res, next) => {
     try {
-        await storageService.upload();
-        res.json({ message: 'Upload was successful' });
+        await storageService.insert();
+        res.json({ message: 'Insert was successful' });
     } catch (e) {
         next(e);
     }
 };
 
-export default { upload };
+export default { insert };

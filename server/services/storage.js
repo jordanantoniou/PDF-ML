@@ -1,28 +1,24 @@
 import { readFilesFromDir } from '../utils/util.js';
-import { createModel } from '../utils/mongo.js';
+import { dropCollection, insertMany } from '../utils/mongo.js';
+const trainingDataDir = './training-data';
 
-const uploadDir = './uploads';
-
-const upload = async () => {
-  const { readFiles: dirs } = await readFilesFromDir(uploadDir, true);
+const insert = async () => {
+  const { readFiles: dirs } = await readFilesFromDir(trainingDataDir, true);
 
   for (const dir of dirs) {
-    const collection = dir.directory.split('./uploads/')[1];
-    const File = createModel(collection);
+    const collection = dir.directory.split(`${trainingDataDir}/`)[1];
 
     try {
-      await File.deleteMany({});
+      await dropCollection(collection);
     } catch(e) {
       console.error(`Error while removing ${collection} collection:`, e.message);
       throw e;
     };
 
-    const uploadFiles = dir.readFiles.map(file => {
-      return new File({ file, prediction: collection });
-    });
+    const documents = dir.readFiles.map(file => ({ file, prediction: collection }));
 
     try {
-      await File.insertMany(uploadFiles);
+      await insertMany(documents, collection);
     } catch (e) {
       console.error(`Error while inserting files for ${collection} collection:`, e.message);
       throw e;
@@ -30,4 +26,4 @@ const upload = async () => {
   }
 };
 
-export default { upload };
+export default { insert };
