@@ -3,15 +3,15 @@ import Tesseract from 'tesseract.js';
 import { promises as pfs } from 'fs';
 import fs from 'fs';
 import { Poppler } from 'node-poppler';
-const poppler = new Poppler('/opt/homebrew/bin');
+const poppler = new Poppler('/usr/local/bin');
 
 const convertImagesToText = async (images) => {
   let text = '';
-
-  for (const { fileName, image } of images) {
+  console.log('images ', images);
+  for (const { fileName, buffer } of images) {
     const {
       data: { text: convertedText },
-    } = await Tesseract.recognize(image);
+    } = await Tesseract.recognize(buffer);
 
     text += convertedText;
   }
