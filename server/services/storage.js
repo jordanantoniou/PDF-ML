@@ -1,35 +1,38 @@
-import { readFilesFromDirectory } from '../utils/util.js';
-import { ConfirmationStatement, Other } from '../models/file.js';
+import { readFilesFromDir } from '../utils/util.js';
+import { dropCollection, insertMany } from '../utils/mongo.js';
+const trainingDataDir = './training-data';
 
-const confirmationStatementDir = './backup/confirmation-statements';
-const otherDir = './backup/other';
+const insert = async () => {
+  const { readFiles: dirs } = await readFilesFromDir(trainingDataDir, true);
 
-const backup = async () => {
-  const confirmationStatementBuffers = await readFilesFromDirectory(
-    confirmationStatementDir,
-  );
-  const otherBuffers = await readFilesFromDirectory(otherDir);
+  for (const dir of dirs) {
+    const collection = dir.directory.split(`${trainingDataDir}/`)[1];
 
-  const confirmationStatements = confirmationStatementBuffers.map(
-    ({ fileName, buffer }) =>
-      new ConfirmationStatement({
-        file: buffer,
-        prediction: 'confirmationStatement',
-      }),
-  );
-  const others = otherBuffers.map(
-    ({ fileName, buffer }) => new Other({ file: buffer, prediction: 'other' }),
-  );
+    try {
+      await dropCollection(collection);
+    } catch (e) {
+      console.error(
+        `Error while removing ${collection} collection:`,
+        e.message,
+      );
+      throw e;
+    }
 
-  try {
-    await ConfirmationStatement.deleteMany({});
-    await ConfirmationStatement.insertMany(confirmationStatements);
-    await Other.deleteMany({});
-    await Other.insertMany(others);
-  } catch (e) {
-    console.error('Error while backing up storage: ', e.message);
-    throw e;
+    const documents = dir.readFiles.map((file) => ({
+      file,
+      prediction: collection,
+    }));
+
+    try {
+      await insertMany(documents, collection);
+    } catch (e) {
+      console.error(
+        `Error while inserting files for ${collection} collection:`,
+        e.message,
+      );
+      throw e;
+    }
   }
 };
 
-export default { backup };
+export default { insert };

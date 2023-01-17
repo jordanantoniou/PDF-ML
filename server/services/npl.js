@@ -1,13 +1,10 @@
 import natural from 'natural';
 import {
   convertPDFsToText,
-  readFilesFromDirectory,
+  readFilesFromDir,
   splitData,
 } from '../utils/util.js';
-import {
-  findAllConfirmationStatements,
-  findAllOthers,
-} from '../utils/mongo.js';
+import { findAll } from '../utils/mongo.js';
 
 let classifier;
 
@@ -27,15 +24,15 @@ natural.BayesClassifier.load(
 
 const classify = async () => {
   const mockPDFDir = './test/data/mocks/';
-  const mockPDFs = await readFilesFromDirectory(mockPDFDir);
+  const mockPDFs = await readFilesFromDir(mockPDFDir);
 
   const observations = await convertPDFsToText(mockPDFs);
 
   const classifications = [];
 
-  for (const { fileName, text: observation } of observations) {
+  for (const observation of observations) {
     const classification = classifier.classify(observation);
-    classifications.push({ fileName, classification });
+    classifications.push(classification);
   }
 
   console.log('Classification Complete...');
@@ -44,59 +41,52 @@ const classify = async () => {
 };
 
 const train = async () => {
-  const confirmationStatementsBuffers = await findAllConfirmationStatements();
-  const othersBuffers = await findAllOthers();
+  const trainingData = await findAll();
+  console.log('trainingData ', trainingData);
+  const testingData = [];
 
-  const confirmationFiles = await convertPDFsToText(
-    confirmationStatementsBuffers,
-  );
-  const confirmationStatements = confirmationFiles?.map(
-    ({ fileName, text }) => text,
-  );
+  for (const { collection, files } of trainingData) {
+    const convertedText = await convertPDFsToText(files);
 
-  const otherFiles = await convertPDFsToText(othersBuffers);
+    const split = await splitData(convertedText, 0.9);
 
-  const others = otherFiles?.map(({ fileName, text }) => text);
+    split.training.forEach((text) => {
+      classifier.addDocument(text, collection);
+    });
 
-  const csSplit = await splitData(confirmationStatements, 0.8);
-  const otherSplit = await splitData(others, 0.8);
+    testingData.push({ collection, files: split.testing });
+  }
 
-  csSplit.training.forEach((cs) => {
-    classifier.addDocument(cs, 'confirmationStatement');
-  });
+  try {
+    classifier.train();
+    await classifier.save('./classifier/classifier.json');
+  } catch (e) {
+    console.error('Error while training classifier', e.message);
+    throw e;
+  }
 
-  otherSplit.training.forEach((other) => {
-    classifier.addDocument(other, 'other');
-  });
-
-  classifier.train();
-
-  classifier.save('./classifier/classifier.json', function (err, classifier) {
-    console.log('Classifier saved to file!');
-  });
-
-  const accuracy = await classificationAccuracy(
-    csSplit.testing,
-    otherSplit.testing,
-  );
+  const accuracy = await classificationAccuracy(testingData);
 
   console.log('Training Complete...');
 
   return accuracy;
 };
 
-const classificationAccuracy = async (confirmationStatements, others) => {
-  const csTestData = confirmationStatements.map((data) => ({
-    text: data,
-    label: 'confirmationStatement',
-  }));
-  const othersTestData = others.map((data) => ({ text: data, label: 'other' }));
+const classificationAccuracy = async (testingData) => {
+  const testingFiles = [];
 
-  const testData = [...csTestData, ...othersTestData];
+  for (const { collection, files } of testingData) {
+    const data = files.map((file) => ({
+      text: file,
+      label: collection,
+    }));
+
+    testingFiles.push(...data);
+  }
 
   let correctPredictions = 0;
 
-  testData.forEach((data) => {
+  testingFiles.forEach((data) => {
     const prediction = classifier.classify(data.text);
 
     if (prediction === data.label) {
@@ -104,7 +94,7 @@ const classificationAccuracy = async (confirmationStatements, others) => {
     }
   });
 
-  const accuracy = (correctPredictions / testData.length) * 100;
+  const accuracy = (correctPredictions / testingFiles.length) * 100;
 
   console.log(`The Classifier has an accuracy of ${accuracy}%`);
 

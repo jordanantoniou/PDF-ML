@@ -16,7 +16,17 @@ const storage = multer.diskStorage({
 import storageController from '../controllers/storage.js';
 const upload = multer({ storage: storage });
 
-router.get('/backup', storageController.get);
 router.post('/upload', upload.single('file'), storageController.saveFile);
+
+/**
+ * @swagger
+ * /storage/insert:
+ *   get:
+ *     description: Insert training files to the database
+ *     responses:
+ *       200:
+ *         description: Returns message with status of insert.
+ */
+router.get('/insert', storageController.insert);
 
 export default router;

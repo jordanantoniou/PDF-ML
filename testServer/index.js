@@ -4,7 +4,7 @@ const port = 3000;
 const cors = require('cors');
 // var bodyParser = require('body-parser');
 const multer = require('multer');
-const upload = multer();
+const upload = multer({ dest: 'uploads/' });
 
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded());
