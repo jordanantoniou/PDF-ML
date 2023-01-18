@@ -30,7 +30,7 @@ const findAll = async () => {
 
     for (const collection of collectionNames) {
         const docs = await database.collection(collection).find({}).toArray();
-        const files = docs.map(doc => doc.file.buffer);
+        const files = docs.map(doc => doc.file.fileContent.buffer);
 
         allFiles.push({ collection, files });
     };
