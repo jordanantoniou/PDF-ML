@@ -88,10 +88,10 @@ function App() {
             return (
               <div key={fileName} className="row-start-3 col-span-2 flex justify-center pb-2">
                 <div className="pr-5">
-                  <label className="font-bold">Filename:</label> {fileName}
+                  <label className="font-bold">Filename: </label> {fileName}
                 </div>
                 <div className="">
-                  <label className="font-bold">Classification:</label>
+                  <label className="font-bold">Classification: </label>
                   {classification}
                 </div>
               </div>

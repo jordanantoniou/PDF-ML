@@ -28,19 +28,18 @@ const { PorterStemmer } = natural;
 const classify = async () => {
   const mockPDFDir = './test/data/mocks/';
   const mockPDFs = await readFilesFromDir(mockPDFDir);
-
   const observations = await convertPDFsToText(mockPDFs);
   const tokenizedText = tokenizeText(observations, PorterStemmer);
 
   const classifications = [];
 
-  for (const observation of tokenizedText) {
+  for (const { fileName, textContent: observation } of tokenizedText) {
     if (!isEmpty(observation)) {
       const classification = classifier.classify(observation);
-      classifications.push(classification);
+    classifications.push({ fileName, classification });
     } else {
       console.error(
-        'No valid text found in document, please ensure document is correct'
+        `No valid text found in document: ${fileName}, please ensure document is correct`
       );
     }
   }
@@ -60,7 +59,7 @@ const train = async () => {
     const tokenizedText = tokenizeText(convertedText, PorterStemmer);
     const split = await splitData(tokenizedText, 0.8);
 
-    split.training.forEach((text) => {
+    split.training.forEach(({ textContent: text }) => {
       classifier.addDocument(text, collection);
     });
 
@@ -86,7 +85,7 @@ const classificationAccuracy = async (testingData) => {
   const testingFiles = [];
 
   for (const { collection, files } of testingData) {
-    const data = files.map((file) => ({
+    const data = files.map(({ fileContent, textContent: file }) => ({
       text: file,
       label: collection,
     }));

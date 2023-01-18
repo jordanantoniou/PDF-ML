@@ -8,8 +8,8 @@ const poppler = new Poppler('/usr/local/bin');
 
 const convertImagesToText = async (images) => {
   let text = '';
-  console.log({ images });
-  for (const buffer of images) {
+
+  for (const { fileName, fileContent: buffer } of images) {
     const {
       data: { text: convertedText },
     } = await Tesseract.recognize(buffer);
@@ -53,7 +53,10 @@ const createTmpDir = async () => {
 
 const convertPDFsToText = async (pdfs) => {
   return await Promise.all(
-    pdfs.map(async (buffer) => {
+    pdfs.map(async (pdf) => {
+      const { fileName, fileContent } = pdf;
+
+      const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
       const tmpDir = await createTmpDir();
 
       await convertPDFToImages(buffer, tmpDir);
@@ -64,19 +67,18 @@ const convertPDFsToText = async (pdfs) => {
 
       await deleteTmpDir(tmpDir);
 
-      return text;
-    })
+      return { fileName, textContent: text };
+    }),
   );
 };
 
-const tokenizeText = (text, stemmer) =>
-  text.map((sample) => {
+const tokenizeText = (observations, stemmer) =>  observations.map(({ fileName, textContent: sample }) => {
     const lower = sample.toLowerCase();
     const textWithoutSymbols = lower.replace(/[^a-zA-Z\s]+/g, '');
     const stemmedWords = stemmer.tokenizeAndStem(textWithoutSymbols);
-    return removeStopwords(stemmedWords, eng);
+    return { fileName, textContent: removeStopwords(stemmedWords, eng) }
   });
-
+  
 const readFilesFromDir = async (directory, recursive = false) => {
   const files = fs.readdirSync(directory, { withFileTypes: true });
 
@@ -90,8 +92,8 @@ const readFilesFromDir = async (directory, recursive = false) => {
           return await readFilesFromDir(path, true);
         }
 
-        return fs.readFileSync(path);
-      })
+        return { fileName: file.name, fileContent: fs.readFileSync(path) };
+      }),
   );
 
   return recursive ? { directory, readFiles } : readFiles;
