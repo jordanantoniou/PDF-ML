@@ -7,7 +7,8 @@ An application which uses OCR (Optical Character Recognision) and NLP (Natural L
 
 * Node (Developed using v18.8.0)
 * [Poppler](https://www.npmjs.com/package/node-poppler)
-* An `.env` environment file containing a `MONGODB_URL` variable in the format of a [MongoDB Connection String](https://www.mongodb.com/docs/manual/reference/connection-string/)
+* A MongoDB instance (This can be local or atlas). 
+* An `.env` environment file containing a `MONGODB_URL` variable in the format of a [MongoDB Connection String](https://www.mongodb.com/docs/manual/reference/connection-string/) and a `DATABASE` variable with the name of the database.
 
 
 ### Running the Application
