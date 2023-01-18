@@ -1,20 +1,15 @@
-import mongoose from 'mongoose';
-import { ConfirmationStatement, Other } from '../models/file.js';
+import { MongoClient } from 'mongodb';
 import * as dotenv from 'dotenv'
 dotenv.config();
 
-mongoose.set('strictQuery', true);
+const client = new MongoClient(process.env.MONGODB_URL);
+const database = client.db(process.env.DATABASE);
 
-const connectionParams = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
-
-const connectToDatabase = () => {
+const connectToDatabase = async () => {
 
     try {
 
-        mongoose.connect(process.env.MONGODB_URL, connectionParams);
+        await client.connect();
 
         console.log('Database connected successfully');
 
@@ -27,16 +22,39 @@ const connectToDatabase = () => {
     }
 };
 
-const findAllConfirmationStatements = async () => {
-    const confirmationStatements = await ConfirmationStatement.find({});
+const findAll = async () => {
+    const collections = await database.listCollections().toArray();
+    const collectionNames = collections.map(collection => collection.name);
 
-    return confirmationStatements.map(confirmationStatement => confirmationStatement.file);
+    let allFiles = [];
+
+    for (const collection of collectionNames) {
+        const docs = await database.collection(collection).find({}).toArray();
+        const files = docs.map(doc => doc.file.buffer);
+
+        allFiles.push({ collection, files });
+    };
+
+    return allFiles;
 };
 
-const findAllOthers = async () => {
-    const others = await Other.find({});
-
-    return others.map(other => other.file);
+const insertMany = async (documents, collection) => {
+    try {
+        await database.collection(collection).insertMany(documents);
+    } catch (e) {
+        console.error(`Error while inserting many into collection ${collection}:`, e.message);
+        throw e;
+    }
 };
 
-export { connectToDatabase, findAllConfirmationStatements, findAllOthers };
+const dropCollection = async (collection) => {
+    try {
+
+        await database.collection(collection).deleteMany({});
+    } catch (e) {
+        console.error(`Error while dropping collection ${collection}:`, e.message);
+        throw e;
+    }
+}
+
+export { connectToDatabase, findAll, dropCollection, insertMany };

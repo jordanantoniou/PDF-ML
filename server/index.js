@@ -36,7 +36,7 @@ app.use('/status', status);
 app.use('/nlp', nlp);
 app.use('/storage', storage);
 
-connectToDatabase();
+await connectToDatabase();
 
 app.listen(8080, async () => {
   console.log('Listening on http://localhost:8080...');

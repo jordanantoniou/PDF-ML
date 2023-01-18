@@ -17,6 +17,17 @@ You can then start the client and server individually by running `npm start` the
 
 The client will be avialable via `http://localhost:3000` and the server will be available via `http://localhost:8080`.
 
+### Inserting Training Data
+
+You need to train the classifier prior to classifying the PDF files. Thankfully the `/storage/insert` endpoint does this for you.
+
+All you need to do is add a new folder in the `training-data` directory (name this folder what you would like the classifcation to be) and add some PDF files within this folder.
+
+These files will then be inserted into the database ready to be used for training.
+
+NOTE: Please do not nest any folders within `training-data` as this will break the application.
+
+
 ## Architecture
 
 [Insert Diagram Here...]
