@@ -25,14 +25,13 @@ natural.BayesClassifier.load(
 const classify = async () => {
   const mockPDFDir = './test/data/mocks/';
   const mockPDFs = await readFilesFromDir(mockPDFDir);
-
   const observations = await convertPDFsToText(mockPDFs);
 
   const classifications = [];
 
-  for (const observation of observations) {
+  for (const { fileName, textContent: observation } of observations) {
     const classification = classifier.classify(observation);
-    classifications.push(classification);
+    classifications.push({ fileName, classification });
   }
 
   console.log('Classification Complete...');
@@ -46,11 +45,12 @@ const train = async () => {
   const testingData = [];
 
   for (const { collection, files } of trainingData) {
+    console.trace('files ', files);
     const convertedText = await convertPDFsToText(files);
 
     const split = await splitData(convertedText, 0.9);
 
-    split.training.forEach((text) => {
+    split.training.forEach(({ fileName, textContent: text }) => {
       classifier.addDocument(text, collection);
     });
 
@@ -76,7 +76,7 @@ const classificationAccuracy = async (testingData) => {
   const testingFiles = [];
 
   for (const { collection, files } of testingData) {
-    const data = files.map((file) => ({
+    const data = files.map(({ fileContent, textContent: file }) => ({
       text: file,
       label: collection,
     }));
