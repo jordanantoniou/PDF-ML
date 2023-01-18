@@ -1,38 +1,48 @@
 import natural from 'natural';
+import isEmpty from 'lodash/isEmpty.js';
 import {
   convertPDFsToText,
   readFilesFromDir,
   splitData,
+  tokenizeText,
 } from '../utils/util.js';
 import { findAll } from '../utils/mongo.js';
 
 let classifier;
 
-natural.BayesClassifier.load(
+natural.LogisticRegressionClassifier.load(
   './classifier/classifier.json',
   null,
   function (err, loadedClassifier) {
     if (err) {
       console.log('No Existing Classifier Found... please train');
-      classifier = new natural.BayesClassifier();
+      classifier = new natural.LogisticRegressionClassifier();
     } else {
       console.log('Existing Classifier Found...');
       classifier = loadedClassifier;
     }
-  },
+  }
 );
+const { PorterStemmer } = natural;
 
 const classify = async () => {
   const mockPDFDir = './test/data/mocks/';
   const mockPDFs = await readFilesFromDir(mockPDFDir);
 
   const observations = await convertPDFsToText(mockPDFs);
+  const tokenizedText = tokenizeText(observations, PorterStemmer);
 
   const classifications = [];
 
-  for (const observation of observations) {
-    const classification = classifier.classify(observation);
-    classifications.push(classification);
+  for (const observation of tokenizedText) {
+    if (!isEmpty(observation)) {
+      const classification = classifier.classify(observation);
+      classifications.push(classification);
+    } else {
+      console.error(
+        'No valid text found in document, please ensure document is correct'
+      );
+    }
   }
 
   console.log('Classification Complete...');
@@ -47,8 +57,8 @@ const train = async () => {
 
   for (const { collection, files } of trainingData) {
     const convertedText = await convertPDFsToText(files);
-
-    const split = await splitData(convertedText, 0.9);
+    const tokenizedText = tokenizeText(convertedText, PorterStemmer);
+    const split = await splitData(tokenizedText, 0.8);
 
     split.training.forEach((text) => {
       classifier.addDocument(text, collection);
