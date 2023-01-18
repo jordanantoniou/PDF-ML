@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import reactLogo from './assets/react.svg';
 import './App.css';
 import axios from 'axios';
 const serverAddress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -8,14 +7,12 @@ function App() {
   type FileEventTarget = { files: FileList };
   type ClassificationData = { fileName: string; classification: string };
 
-  const [trainingStatus, setTrainingStatus] = useState<String>('');
+  const [trainingStatus, setTrainingStatus] = useState<string>('');
 
-  const [classifyStatus, setClassifyStatus] = useState<
-    String | Array<ClassificationData>
-  >('');
+  const [classifyStatus, setClassifyStatus] = useState<string | Array<ClassificationData>>('');
 
   const handleFileUpload = async (eventTarget: FileEventTarget) => {
-    let formData = new FormData();
+    const formData = new FormData();
     const file = eventTarget?.files?.[0] || null;
     formData.append('file', file);
     if (file) {
@@ -37,9 +34,7 @@ function App() {
 
   return (
     <div className="grid grid-cols-3 grid-rows-3 place-content-center	">
-      <h1 className="col-start-2 text-3xl font-bold underline pb-5">
-        Class-ify
-      </h1>
+      <h1 className="col-start-2 text-3xl font-bold underline pb-5">Class-ify</h1>
 
       <input
         className="row-start-2 px-6 text-grey-500 place-content-center
@@ -53,9 +48,7 @@ function App() {
         onClick={trainClassifier}
         value="Train"
       />
-      {trainingStatus && (
-        <p className="row-start-3 col-span-1 max-w-[15rem]">{trainingStatus}</p>
-      )}
+      {trainingStatus && <p className="row-start-3 col-span-1 max-w-[15rem]">{trainingStatus}</p>}
 
       <label className="row-start-2">
         <input
@@ -93,7 +86,7 @@ function App() {
         <div className="flex flex-col row-start-3 col-span-2">
           {classifyStatus.map(({ fileName, classification }) => {
             return (
-              <div className="row-start-3 col-span-2 flex justify-center pb-2">
+              <div key={fileName} className="row-start-3 col-span-2 flex justify-center pb-2">
                 <div className="pr-5">
                   <label className="font-bold">Filename: </label> {fileName}
                 </div>
