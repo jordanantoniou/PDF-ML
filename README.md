@@ -5,10 +5,13 @@ An application which uses OCR (Optical Character Recognision) and NLP (Natural L
 
 ### Prerequisites
 
-* Node (Developed using v18.8.0)
-* [Poppler](https://www.npmjs.com/package/node-poppler)
-* A MongoDB instance (This can be local or atlas). 
-* An `.env` environment file containing a `MONGODB_URL` variable in the format of a [MongoDB Connection String](https://www.mongodb.com/docs/manual/reference/connection-string/) and a `DATABASE` variable with the name of the database.
+* You must install Node (Developed using v18.8.0)
+* You must install [Poppler](https://www.npmjs.com/package/node-poppler)
+* Create a MongoDB instance (This can be local or atlas). 
+* An `.env` environment file containing the following variables:
+    * A `MONGODB_URL` variable in the format of a [MongoDB Connection String](https://www.mongodb.com/docs/manual/reference/connection-string/)
+    * A `DATABASE` variable with the name of the database.
+    * A `POPPLER_HOME` variable with the path to the poppler installation directory. (Can use `whereis pdfToCairo` in terminal to find the path)
 
 
 ### Running the Application

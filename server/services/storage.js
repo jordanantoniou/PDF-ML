@@ -1,22 +1,22 @@
 import { readFilesFromDir } from '../utils/util.js';
-import { dropCollection, insertMany } from '../utils/mongo.js';
+import { dropAllCollections, insertMany } from '../utils/mongo.js';
 const trainingDataDir = './training-data';
 
 const insert = async () => {
   const { readFiles: dirs } = await readFilesFromDir(trainingDataDir, true);
 
+  try {
+    await dropAllCollections();
+  } catch (e) {
+    console.error(
+      `Error while dropping collections`,
+      e.message,
+    );
+    throw e;
+  }
+
   for (const dir of dirs) {
     const collection = dir.directory.split(`${trainingDataDir}/`)[1];
-
-    try {
-      await dropCollection(collection);
-    } catch (e) {
-      console.error(
-        `Error while removing ${collection} collection:`,
-        e.message,
-      );
-      throw e;
-    }
 
     const documents = dir.readFiles.map((file) => ({
       file,

@@ -22,13 +22,20 @@ const connectToDatabase = async () => {
     }
 };
 
-const findAll = async () => {
+const findAllCollections = async () => {
+    const ignoreCollections = ['classification'];
     const collections = await database.listCollections().toArray();
-    const collectionNames = collections.map(collection => collection.name);
+    const collectionNames = collections.map(collection => collection.name).filter(collectionName => !ignoreCollections.includes(collectionName));
+
+    return collectionNames;
+};
+
+const findAll = async () => {
+    const collections = await findAllCollections();
 
     let allFiles = [];
 
-    for (const collection of collectionNames) {
+    for (const collection of collections) {
         const docs = await database.collection(collection).find({}).toArray();
         const files = docs.map(doc => doc.file.fileContent.buffer);
 
@@ -41,20 +48,26 @@ const findAll = async () => {
 const insertMany = async (documents, collection) => {
     try {
         await database.collection(collection).insertMany(documents);
+        console.log(`Inserted documents into ${collection} Collection!`)
     } catch (e) {
         console.error(`Error while inserting many into collection ${collection}:`, e.message);
         throw e;
     }
 };
 
-const dropCollection = async (collection) => {
-    try {
+const dropAllCollections = async () => {
 
-        await database.collection(collection).deleteMany({});
-    } catch (e) {
-        console.error(`Error while dropping collection ${collection}:`, e.message);
-        throw e;
-    }
+    const collections = await findAllCollections();
+
+    for (const collection of collections) {
+        try {
+            await database.collection(collection).deleteMany({});
+            console.log(`Dropped Collection ${collection} from database!`)
+        } catch (e) {
+            console.error(`Error while dropping collection ${collection}:`, e.message);
+            throw e;
+        }
+    };
 }
 
-export { connectToDatabase, findAll, dropCollection, insertMany };
+export { connectToDatabase, findAll, dropAllCollections, insertMany };
