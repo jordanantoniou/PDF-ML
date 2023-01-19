@@ -5,8 +5,6 @@ dotenv.config();
 const client = new MongoClient(process.env.MONGODB_URL);
 const database = client.db(process.env.DATABASE);
 
-const ignoreCollections = ['classification'];
-
 const connectToDatabase = async () => {
 
     try {
@@ -24,13 +22,20 @@ const connectToDatabase = async () => {
     }
 };
 
-const findAll = async () => {
+const findAllCollections = async () => {
+    const ignoreCollections = ['classification'];
     const collections = await database.listCollections().toArray();
     const collectionNames = collections.map(collection => collection.name).filter(collectionName => !ignoreCollections.includes(collectionName));
 
+    return collectionNames;
+};
+
+const findAll = async () => {
+    const collections = await findAllCollections();
+
     let allFiles = [];
 
-    for (const collection of collectionNames) {
+    for (const collection of collections) {
         const docs = await database.collection(collection).find({}).toArray();
         const files = docs.map(doc => doc.file.fileContent.buffer);
 
@@ -52,10 +57,9 @@ const insertMany = async (documents, collection) => {
 
 const dropAllCollections = async () => {
 
-    const collections = await database.listCollections().toArray();
-    const collectionNames = collections.map(collection => collection.name).filter(collectionName => !ignoreCollections.includes(collectionName));
+    const collections = await findAllCollections();
 
-    for (const collection of collectionNames) {
+    for (const collection of collections) {
         try {
             await database.collection(collection).deleteMany({});
             console.log(`Dropped Collection ${collection} from database!`)
