@@ -3,8 +3,12 @@ import Tesseract from 'tesseract.js';
 import { removeStopwords, eng } from 'stopword';
 import { promises as pfs } from 'fs';
 import fs from 'fs';
+
+import * as dotenv from 'dotenv'
+dotenv.config();
+
 import { Poppler } from 'node-poppler';
-const poppler = new Poppler('/usr/local/bin');
+const poppler = new Poppler(process.env.POPPLER_HOME);
 
 const convertImagesToText = async (images) => {
   let text = '';
@@ -52,24 +56,31 @@ const createTmpDir = async () => {
 };
 
 const convertPDFsToText = async (pdfs) => {
-  return await Promise.all(
-    pdfs.map(async (pdf) => {
-      const { fileName, fileContent } = pdf;
 
-      const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
-      const tmpDir = await createTmpDir();
+  let convertedPDFs = [];
+  const totalPDFs = pdfs.length;
 
-      await convertPDFToImages(buffer, tmpDir);
+  for (const [idx, pdf] of pdfs.entries()) {
 
-      const tmpImages = await readFilesFromDir(tmpDir);
+    const { fileName, fileContent } = pdf;
 
-      const text = await convertImagesToText(tmpImages);
+    const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
+    const tmpDir = await createTmpDir();
 
-      await deleteTmpDir(tmpDir);
+    await convertPDFToImages(buffer, tmpDir);
 
-      return { fileName, textContent: text };
-    }),
-  );
+    const tmpImages = await readFilesFromDir(tmpDir);
+
+    const text = await convertImagesToText(tmpImages);
+
+    await deleteTmpDir(tmpDir);
+
+    convertedPDFs.push({ fileName, textContent: text });
+
+    console.log(`Converted PDF ${idx}/${totalPDFs}`);
+  };
+
+  return convertedPDFs;
 };
 
 const tokenizeText = (observations, stemmer) =>  observations.map(({ fileName, textContent: sample }) => {

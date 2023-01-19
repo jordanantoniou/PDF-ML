@@ -30,7 +30,7 @@ const findAll = async () => {
 
     for (const collection of collectionNames) {
         const docs = await database.collection(collection).find({}).toArray();
-        const files = docs.map(doc => doc.file.buffer);
+        const files = docs.map(doc => doc.file.fileContent.buffer);
 
         allFiles.push({ collection, files });
     };
@@ -47,14 +47,18 @@ const insertMany = async (documents, collection) => {
     }
 };
 
-const dropCollection = async (collection) => {
-    try {
+const dropAllCollections = async () => {
+    const collections = await database.listCollections().toArray();
+    const collectionNames = collections.map(collection => collection.name);
 
-        await database.collection(collection).deleteMany({});
-    } catch (e) {
-        console.error(`Error while dropping collection ${collection}:`, e.message);
-        throw e;
-    }
+    for (const collection of collectionNames) {
+        try {
+            await database.collection(collection).deleteMany({});
+        } catch (e) {
+            console.error(`Error while dropping collection ${collection}:`, e.message);
+            throw e;
+        }
+    };
 }
 
-export { connectToDatabase, findAll, dropCollection, insertMany };
+export { connectToDatabase, findAll, dropAllCollections, insertMany };

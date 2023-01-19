@@ -1,5 +1,5 @@
 import { readFilesFromDir } from '../utils/util.js';
-import { dropCollection, insertMany } from '../utils/mongo.js';
+import { dropAllCollections, insertMany } from '../utils/mongo.js';
 const trainingDataDir = './training-data';
 
 const insert = async () => {
@@ -9,7 +9,7 @@ const insert = async () => {
     const collection = dir.directory.split(`${trainingDataDir}/`)[1];
 
     try {
-      await dropCollection(collection);
+      await dropAllCollections();
     } catch (e) {
       console.error(
         `Error while removing ${collection} collection:`,
