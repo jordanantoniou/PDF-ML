@@ -47,38 +47,40 @@ const deleteTmpDir = async (tmpDir) => {
 const createTmpDir = async () => {
   const prefix = './images/cairo';
   const tmpDir = await pfs.mkdtemp(prefix);
-  
+
   return tmpDir;
 };
 
 const convertPDFsToText = async (pdfs) => {
-  return await Promise.all(
-    pdfs.map(async (pdf) => {
-      const { fileName, fileContent } = pdf;
+  let convertedPDFs = [];
+  for (let pdf of pdfs) {
+    const { fileName, fileContent } = pdf;
 
-      const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
-      const tmpDir = await createTmpDir();
+    const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
+    const tmpDir = await createTmpDir();
 
-      await convertPDFToImages(buffer, tmpDir);
+    await convertPDFToImages(buffer, tmpDir);
 
-      const tmpImages = await readFilesFromDir(tmpDir);
+    const tmpImages = await readFilesFromDir(tmpDir);
 
-      const text = await convertImagesToText(tmpImages);
+    const text = await convertImagesToText(tmpImages);
 
-      await deleteTmpDir(tmpDir);
+    await deleteTmpDir(tmpDir);
 
-      return { fileName, textContent: text };
-    }),
-  );
+    convertedPDFs.push({ fileName, textContent: text });
+  }
+
+  return convertedPDFs;
 };
 
-const tokenizeText = (observations, stemmer) =>  observations.map(({ fileName, textContent: sample }) => {
+const tokenizeText = (observations, stemmer) =>
+  observations.map(({ fileName, textContent: sample }) => {
     const lower = sample.toLowerCase();
     const textWithoutSymbols = lower.replace(/[^a-zA-Z\s]+/g, '');
     const stemmedWords = stemmer.tokenizeAndStem(textWithoutSymbols);
-    return { fileName, textContent: removeStopwords(stemmedWords, eng) }
+    return { fileName, textContent: removeStopwords(stemmedWords, eng) };
   });
-  
+
 const readFilesFromDir = async (directory, recursive = false) => {
   const files = fs.readdirSync(directory, { withFileTypes: true });
 
