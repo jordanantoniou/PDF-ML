@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 import storageController from '../controllers/storage.js';
 const upload = multer({ storage: storage });
 
-router.post('/upload', upload.single('file'), storageController.saveFile);
+router.post('/upload', upload.array('files'), storageController.saveFile);
 
 /**
  * @swagger
