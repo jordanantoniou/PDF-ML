@@ -76,7 +76,6 @@ const classify = async () => {
 
 const train = async () => {
   const trainingData = await findAll();
-  console.log('trainingData ', trainingData);
   const testingData = [];
 
   for (const { collection, files } of trainingData) {

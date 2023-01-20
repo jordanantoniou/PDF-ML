@@ -17,11 +17,18 @@ const connectToDatabase = async () => {
   }
 };
 
-const findAll = async () => {
+const findAllCollections = async () => {
+  const ignoreCollections = ['classification'];
   const collections = await database.listCollections().toArray();
-  const collectionNames = collections.map((collection) => collection.name);
+  const collectionNames = collections
+    .map((collection) => collection.name)
+    .filter((collectionName) => !ignoreCollections.includes(collectionName));
 
-  let allFiles = [];
+  return collectionNames;
+};
+
+const findAll = async () => {
+  const collections = await findAllCollections();
 
   for (const collection of collectionNames) {
     const docs = await database.collection(collection).find({}).toArray();
@@ -86,6 +93,23 @@ const findOneAndUpdate = async (collection, item, filter) => {
   }
 };
 
+const dropAllCollections = async () => {
+  const collections = await findAllCollections();
+
+  for (const collection of collections) {
+    try {
+      await database.collection(collection).deleteMany({});
+      console.log(`Dropped Collection ${collection} from database!`);
+    } catch (e) {
+      console.error(
+        `Error while dropping collection ${collection}:`,
+        e.message,
+      );
+      throw e;
+    }
+  }
+};
+
 export {
   connectToDatabase,
   findAll,
@@ -94,4 +118,5 @@ export {
   insertOne,
   findOneAndUpdate,
   findAllByCollection,
+  dropAllCollections,
 };

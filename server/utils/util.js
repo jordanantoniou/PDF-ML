@@ -3,8 +3,12 @@ import Tesseract from 'tesseract.js';
 import { removeStopwords, eng } from 'stopword';
 import { promises as pfs } from 'fs';
 import fs from 'fs';
+
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { Poppler } from 'node-poppler';
-const poppler = new Poppler('/usr/local/bin');
+const poppler = new Poppler(process.env.POPPLER_HOME);
 
 const convertImagesToText = async (images) => {
   let text = '';
@@ -53,7 +57,9 @@ const createTmpDir = async () => {
 
 const convertPDFsToText = async (pdfs) => {
   let convertedPDFs = [];
-  for (let pdf of pdfs) {
+  const totalPDFs = pdfs.length;
+
+  for (const [idx, pdf] of pdfs.entries()) {
     const { fileName, fileContent } = pdf;
 
     const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
@@ -68,6 +74,8 @@ const convertPDFsToText = async (pdfs) => {
     await deleteTmpDir(tmpDir);
 
     convertedPDFs.push({ fileName, textContent: text });
+
+    console.log(`Converted PDF ${idx}/${totalPDFs}`);
   }
 
   return convertedPDFs;
