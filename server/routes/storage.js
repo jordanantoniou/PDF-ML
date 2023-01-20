@@ -1,6 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import multer from 'multer';
+import nlp from '../controllers/nlp';
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -17,6 +18,8 @@ import storageController from '../controllers/storage.js';
 const upload = multer({ storage: storage });
 
 router.post('/upload', upload.array('files'), storageController.saveFile);
+
+router.post('/classifyUploads', upload.array('file'), nlp.classify);
 
 /**
  * @swagger
