@@ -4,12 +4,12 @@ import { useQuery } from 'react-query';
 const serverAddress = import.meta.env.VITE_SERVER_ADDRESS;
 
 const useClassify = (enabled: boolean) => {
-  const { isLoading, isError, data } = useQuery(
+  const { isLoading, isError, isSuccess, data } = useQuery(
     ['classify', enabled],
     () => axios.get(`${serverAddress}/nlp/classify`).then((res) => res.data),
     { enabled }
   );
-  return { isLoading, isError, data };
+  return { isLoading, isError, isSuccess, data };
 };
 
 const useTrain = () => {

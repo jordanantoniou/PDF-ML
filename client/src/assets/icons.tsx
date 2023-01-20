@@ -38,22 +38,13 @@ const GithubIcon = () => (
   </svg>
 );
 
-const ThumbsUp = () => (
-  <svg width="21" height="19" viewBox="0 0 21 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+const CheckIcon = () => (
+  <svg width="35" height="29" viewBox="0 0 35 29" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M0 19H3.81818V7.6H0V19ZM21 8.55C21 7.505 20.1409 6.65 19.0909 6.65H13.0677L13.9745 2.3085L14.0032 2.0045C14.0032 1.615 13.8409 1.254 13.5832 0.9975L12.5714 0L6.29045 6.2605C5.93727 6.6025 5.72727 7.0775 5.72727 7.6V17.1C5.72727 18.145 6.58636 19 7.63636 19H16.2273C17.0195 19 17.6973 18.525 17.9836 17.841L20.8664 11.1435C20.9523 10.925 21 10.697 21 10.45V8.55Z"
-      fill="#949494"
+      d="M12.5804 20.5682L6.17965 14.038L4 16.2461L12.5804 25L31 6.20805L28.8357 4L12.5804 20.5682Z"
+      fill="#95FF9F"
     />
   </svg>
 );
 
-const ThumbsDown = () => (
-  <svg width="21" height="19" viewBox="0 0 21 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M13.3636 0H4.77273C3.98045 0 3.30273 0.475 3.01636 1.159L0.133636 7.8565C0.0477273 8.075 0 8.303 0 8.55V10.45C0 11.495 0.859091 12.35 1.90909 12.35H7.93227L7.02545 16.6915L6.99682 16.9955C6.99682 17.385 7.15909 17.746 7.41682 18.0025L8.42864 19L14.7191 12.7395C15.0627 12.3975 15.2727 11.9225 15.2727 11.4V1.9C15.2727 0.855 14.4136 0 13.3636 0ZM17.1818 0V11.4H21V0H17.1818Z"
-      fill="#949494"
-    />
-  </svg>
-);
-
-export { TuneIcon, ShapeIcon, SearchIcon, GithubIcon, ThumbsUp, ThumbsDown };
+export { TuneIcon, ShapeIcon, SearchIcon, GithubIcon, CheckIcon };

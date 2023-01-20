@@ -32,7 +32,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <div className="App flex flex-col place-items-center gap-20 bg-base-1">
         <div className="w-full p-4">
-          <GithubIcon />
+          <a href="https://github.com/jordanantoniou/PDF-ML" target="_blank" rel="noreferrer">
+            <GithubIcon />
+          </a>
         </div>
         <div className="grid grid-cols-2 gap-x-10">
           <Button
