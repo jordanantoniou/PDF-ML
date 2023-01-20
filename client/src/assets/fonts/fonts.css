@@ -1,0 +1,13 @@
+@font-face {
+	font-family: 'Inter';
+	src: url('./Inter/Inter-VariableFont_slnt\,wght.ttf');
+	font-weight: 100 1000;
+	font-stretch: 25% 151%;
+}
+
+@font-face {
+	font-family: 'Roboto Mono';
+	src: url('./RobotoMono/RobotoMono-VariableFont_wght.ttf');
+	font-weight: 100 1000;
+	font-stretch: 25% 151%;
+}
