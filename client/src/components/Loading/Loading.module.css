@@ -21,3 +21,6 @@
 	--accent-colour: #95FF9F;
 }
 
+.loadingBarInner[data-error=true] {
+	--accent-colour: #FF5454;
+}

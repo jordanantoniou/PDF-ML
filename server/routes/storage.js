@@ -19,7 +19,7 @@ const upload = multer({ storage: storage });
 
 router.post('/upload', upload.array('files'), storageController.saveFile);
 
-router.post('/classifyUploads', upload.array('file'), nlp.classify);
+router.post('/classifyUploads', upload.array('files'), nlp.classify);
 
 /**
  * @swagger

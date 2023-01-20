@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useClassify, useUpload } from '../../hooks';
+import { useEffect } from 'react';
+import { useClassifyUpload } from '../../hooks';
 import { LoadingBar, Placeholder } from '../Loading/Loading';
 import { animate } from '@motionone/dom';
 
@@ -8,14 +8,8 @@ const FileList = ({ files }: { files: FileList }) => {
     name: file.name,
     classification: undefined
   }));
-  const [loading, setLoading] = useState<boolean>(true);
-  const {
-    isLoading: uploading,
-    isError: uploadError,
-    data: uploadResponseStatus
-  } = useUpload(files);
 
-  const { isLoading, isError, isSuccess, data } = useClassify(uploadResponseStatus === 200);
+  const { isLoading, isError, isSuccess, data } = useClassifyUpload(files);
 
   if (data) {
     classifications = data.map(
@@ -28,14 +22,14 @@ const FileList = ({ files }: { files: FileList }) => {
 
   return (
     <div className="flex flex-col gap-5">
-      <LoadingBar complete={!isLoading || isSuccess} />
-
+      <LoadingBar complete={!isLoading || isSuccess} isError={isError} />
       {classifications.map((classificationMap, index) => (
         <File
           id={`classified-file-${index}`}
           key={classificationMap.name}
-          {...classificationMap}
           isLoading={isLoading}
+          isError={isError}
+          {...classificationMap}
         />
       ))}
     </div>
@@ -47,9 +41,10 @@ interface FileProps {
   name: string;
   classification?: string;
   isLoading: boolean;
+  isError: boolean;
 }
 
-const File = ({ id, name, classification, isLoading, ...rest }: FileProps) => {
+const File = ({ id, name, classification, isLoading, isError, ...rest }: FileProps) => {
   useEffect(() => {
     animate(
       `#${id}`,
@@ -60,7 +55,9 @@ const File = ({ id, name, classification, isLoading, ...rest }: FileProps) => {
   return (
     <div
       id={id}
-      className="classified-file grid grid-cols-class-table items-center rounded-md bg-base-5 px-4"
+      className={`classified-file grid grid-cols-class-table items-center rounded-md bg-base-5 px-4 ${
+        isError ? 'cursor-not-allowed' : ''
+      }`}
       {...rest}>
       <div>{name}</div>
       <div className="p-3 font-mono">{classification || <Placeholder />}</div>

@@ -4,9 +4,10 @@ import { animate } from 'motion';
 interface LoadingProps {
   complete?: boolean;
   timeout?: number;
+  isError: boolean;
 }
 
-const LoadingBar = ({ complete = false, timeout = 50 }: LoadingProps) => {
+const LoadingBar = ({ complete = false, timeout = 50, isError }: LoadingProps) => {
   const progressBar = document.querySelector(`.${styles.loadingBarInner}`);
   if (progressBar && !complete) {
     animate(progressBar, { width: '100%' }, { duration: timeout });
@@ -16,7 +17,7 @@ const LoadingBar = ({ complete = false, timeout = 50 }: LoadingProps) => {
   return (
     <div className="flex flex-row items-center gap-5">
       <div className={styles.loadingBar}>
-        <div className={styles.loadingBarInner} data-loading={!complete}></div>
+        <div className={styles.loadingBarInner} data-loading={!complete} data-error={isError} />
       </div>
     </div>
   );
