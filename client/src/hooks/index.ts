@@ -1,22 +1,27 @@
-import axios from 'axios';
 import { useQuery } from 'react-query';
 
 const serverAddress = import.meta.env.VITE_SERVER_ADDRESS;
 
-const useClassify = (enabled: boolean) => {
-  const { isLoading, isError, isSuccess, data, error } = useQuery(
-    ['classify', enabled],
-    () => axios.get(`${serverAddress}/nlp/classify`).then((res) => res.data),
-    { enabled }
-  );
-  return { isLoading, isError, error, isSuccess, data };
-};
+export interface Classification {
+  _id: string;
+  hash: string;
+  fileName: string;
+  lastUpdate: string;
+  classification: string;
+}
 
-const useClassifyUpload = (files: FileList) => {
+const useClassifyUpload = (
+  files: FileList
+): {
+  isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+  data: { classifications: Classification[] };
+} => {
   const formData = new FormData();
   [...files].forEach((file) => formData.append('files', file));
   const { isLoading, isError, isSuccess, data } = useQuery('classifyUpload', () =>
-    fetch(`${serverAddress}/nlp/classifyUpload`, { method: 'post' }).then((res) => res.json())
+    fetch(`${serverAddress}/storage/classifyUploads`, { method: 'post' }).then((res) => res.json())
   );
   return { isLoading, isError, isSuccess, data };
 };
@@ -28,14 +33,21 @@ const useTrain = () => {
   return { isLoading, isError, data };
 };
 
-const useUpload = (files: FileList) => {
-  const formData = new FormData();
-  [...files].forEach((file) => formData.append('files', file));
-  const { isLoading, isError, data } = useQuery('upload', () =>
-    axios.post(`${serverAddress}/storage/upload`, formData).then((res) => res.status)
+const useFetchAll = ({
+  onSuccess
+}: {
+  onSuccess: (data: { classifications: Classification[] }) => void;
+}): {
+  isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+} => {
+  const { isLoading, isError, isSuccess } = useQuery(
+    'classifications',
+    () => fetch(`${serverAddress}/classification/findAll`).then((res) => res.json()),
+    { onSuccess }
   );
-
-  return { isLoading, isError, data };
+  return { isLoading, isError, isSuccess };
 };
 
-export { useClassify, useTrain, useUpload, useClassifyUpload };
+export { useTrain, useFetchAll, useClassifyUpload };

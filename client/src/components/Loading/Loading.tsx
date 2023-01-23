@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import styles from './Loading.module.css';
 import { animate } from 'motion';
 
@@ -8,12 +9,15 @@ interface LoadingProps {
 }
 
 const LoadingBar = ({ complete = false, timeout = 50, isError }: LoadingProps) => {
-  const progressBar = document.querySelector(`.${styles.loadingBarInner}`);
-  if (progressBar && !complete) {
-    animate(progressBar, { width: '100%' }, { duration: timeout });
-  } else if (progressBar && complete) {
-    animate(progressBar, { width: '100%' }, { duration: 0.1 });
-  }
+  useEffect(() => {
+    const progressBar = document.querySelector(`.${styles.loadingBarInner}`);
+    if (progressBar && !complete) {
+      animate(progressBar, { width: '100%' }, { duration: timeout });
+    } else if (progressBar && complete) {
+      animate(progressBar, { width: '100%' }, { duration: 0.1 });
+    }
+  }, [complete]);
+
   return (
     <div className="flex flex-row items-center gap-5">
       <div className={styles.loadingBar}>
