@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import multer from 'multer';
-import nlp from '../controllers/nlp';
+import nlp from '../controllers/nlp.js';
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
