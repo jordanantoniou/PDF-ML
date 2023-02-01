@@ -6,7 +6,8 @@ import {
   splitData,
   tokenizeText,
 } from '../utils/util.js';
-import { findAll } from '../utils/mongo.js';
+import { findAll, findOneAndUpdate, insertOne } from '../utils/mongo.js';
+import SparkMD5 from 'spark-md5';
 
 let classifier;
 
@@ -21,7 +22,7 @@ natural.LogisticRegressionClassifier.load(
       console.log('Existing Classifier Found...');
       classifier = loadedClassifier;
     }
-  }
+  },
 );
 const { PorterStemmer } = natural;
 
@@ -32,14 +33,38 @@ const classify = async () => {
   const tokenizedText = tokenizeText(observations, PorterStemmer);
 
   const classifications = [];
-
   for (const { fileName, textContent: observation } of tokenizedText) {
     if (!isEmpty(observation)) {
+      const hashedFile = SparkMD5.hash(observation.toString());
+
       const classification = classifier.classify(observation);
-    classifications.push({ fileName, classification });
+      classifications.push({ hash: hashedFile, fileName, classification });
+
+      const {
+        lastErrorObject: { updatedExisting: hasUpdated },
+      } = await findOneAndUpdate(
+        'classification',
+        {
+          $set: {
+            fileName,
+            classification,
+            lastUpdate: new Date(),
+          },
+        },
+        { hash: hashedFile },
+      );
+
+      if (!hasUpdated) {
+        await insertOne('classification', {
+          hash: hashedFile,
+          fileName,
+          classification,
+          lastUpdate: new Date(),
+        });
+      }
     } else {
       console.error(
-        `No valid text found in document: ${fileName}, please ensure document is correct`
+        `No valid text found in document: ${fileName}, please ensure document is correct`,
       );
     }
   }

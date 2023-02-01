@@ -1,105 +1,75 @@
-import { useState } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import './App.css';
-import axios from 'axios';
-const serverAddress = import.meta.env.VITE_SERVER_ADDRESS;
+import { TuneIcon, ShapeIcon, GithubIcon } from './assets/icons';
+import { Button } from './components/Button/Button';
+import { Table } from './components/Table/Table';
+import { Search } from './components/Search/Search';
+import { FileList } from './components/FileList/FileList';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 function App() {
-  type FileEventTarget = { files: FileList };
-  type ClassificationData = { fileName: string; classification: string };
+  const [files, setFiles] = useState<FileList>();
+  // type ClassificationData = { fileName: string; classification: string };
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const [trainingStatus, setTrainingStatus] = useState<string>('');
-
-  const [classifyStatus, setClassifyStatus] = useState<string | Array<ClassificationData>>('');
-
-  const handleFileUpload = async (eventTarget: FileEventTarget) => {
-    const formData = new FormData();
-    const file = eventTarget?.files?.[0] || null;
-    formData.append('file', file);
-    if (file) {
-      await axios.post(`${serverAddress}/storage/upload`, formData);
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    console.log('here');
+    if (!e.target.files) {
+      return;
     }
+    setFiles(e.target.files);
   };
 
-  const trainClassifier = async () => {
-    setTrainingStatus('Loading...');
-    const response = await axios.get(`${serverAddress}/nlp/train`);
-    setTrainingStatus(`Response: ${response.data.message}`);
+  const handleInputClick = () => {
+    inputRef.current?.click();
   };
 
-  const classify = async () => {
-    setClassifyStatus('Loading...');
-    const response = await axios.get(`${serverAddress}/nlp/classify`);
-    setClassifyStatus(response.data);
-  };
+  // const [trainingStatus, setTrainingStatus] = useState<string>('');
 
+  // const [classifyStatus, setClassifyStatus] = useState<string | Array<ClassificationData>>('');
+  const queryClient = new QueryClient();
   return (
-    <div className="grid grid-cols-3 grid-rows-3 place-content-center	">
-      <h1 className="col-start-2 text-3xl font-bold underline pb-5">Class-ify</h1>
-
-      <input
-        className="row-start-2 px-6 text-grey-500 place-content-center
-           py-2 min-h-[2.2rem] max-h-[2.2rem] max-w-[8rem]
-          rounded-full border-0
-          text-sm font-medium
-          bg-blue-50 text-blue-700
-          hover:cursor-pointer hover:bg-amber-50
-          hover:text-amber-700"
-        type="button"
-        onClick={trainClassifier}
-        value="Train"
-      />
-      {trainingStatus && <p className="row-start-3 col-span-1 max-w-[15rem]">{trainingStatus}</p>}
-
-      <label className="row-start-2">
-        <input
-          type="file"
-          className=" text-sm text-grey-500
-            file:mr-5 file:py-2 file:px-6
-            file:rounded-full file:border-0
-            file:text-sm file:font-medium
-            file:bg-blue-50 file:text-blue-700
-            hover:file:cursor-pointer hover:file:bg-amber-50
-            hover:file:text-amber-700
-          "
-          onChange={({ target: { files } }) => {
-            if (files) {
-              handleFileUpload({ files });
-            }
-          }}
-        />
-      </label>
-
-      <input
-        className="row-start-2 text-grey-500
-          mr-5 py-2 min-h-[2.2rem] max-h-[2.2rem] max-w-[8rem]
-          rounded-full border-0
-          text-sm font-medium
-          bg-blue-50 text-blue-700
-          hover:cursor-pointer hover:bg-amber-50
-          hover:text-amber-700"
-        type="button"
-        onClick={classify}
-        value="Classify"
-      />
-
-      {Array.isArray(classifyStatus) && (
-        <div className="flex flex-col row-start-3 col-span-2">
-          {classifyStatus.map(({ fileName, classification }) => {
-            return (
-              <div key={fileName} className="row-start-3 col-span-2 flex justify-center pb-2">
-                <div className="pr-5">
-                  <label className="font-bold">Filename: </label> {fileName}
-                </div>
-                <div className="">
-                  <label className="font-bold">Classification: </label>
-                  {classification}
-                </div>
-              </div>
-            );
-          })}
+    <QueryClientProvider client={queryClient}>
+      <div className="App flex flex-col place-items-center gap-20 bg-base-1">
+        <div className="w-full p-4">
+          <a href="https://github.com/jordanantoniou/PDF-ML" target="_blank" rel="noreferrer">
+            <GithubIcon />
+          </a>
         </div>
-      )}
-    </div>
+        <div className="grid grid-cols-2 gap-x-10">
+          <Button
+            title="Train"
+            subtitle="Retrain model from scratch"
+            onClick={() => {}}
+            icon={<TuneIcon />}
+          />
+          <Button
+            title="Classify"
+            subtitle="Upload a document to classify"
+            icon={<ShapeIcon />}
+            onClick={handleInputClick}
+          />
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
+            multiple
+            onChange={handleFileChange}
+          />
+        </div>
+        {files && <FileList files={files} />}
+        <div className="flex flex-col gap-3">
+          <div className="grid w-full place-items-end">
+            <Search />
+          </div>
+          <Table>
+            <Table.Header titles={['Name', 'Class', 'Last classified']} />
+            <Table.Row values={['sample-data-file.pdf', 'Confirmation statement', '22-03-2023']} />
+            <Table.Row values={['sample-data-file.pdf', 'Confirmation statement', '22-03-2023']} />
+          </Table>
+        </div>
+      </div>
+    </QueryClientProvider>
   );
 }
 

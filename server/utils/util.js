@@ -4,7 +4,7 @@ import { removeStopwords, eng } from 'stopword';
 import { promises as pfs } from 'fs';
 import fs from 'fs';
 
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { Poppler } from 'node-poppler';
@@ -51,17 +51,15 @@ const deleteTmpDir = async (tmpDir) => {
 const createTmpDir = async () => {
   const prefix = './images/cairo';
   const tmpDir = await pfs.mkdtemp(prefix);
-  
+
   return tmpDir;
 };
 
 const convertPDFsToText = async (pdfs) => {
-
   let convertedPDFs = [];
   const totalPDFs = pdfs.length;
 
   for (const [idx, pdf] of pdfs.entries()) {
-
     const { fileName, fileContent } = pdf;
 
     const buffer = pdf?.hasOwnProperty('fileContent') ? fileContent : pdf;
@@ -78,18 +76,19 @@ const convertPDFsToText = async (pdfs) => {
     convertedPDFs.push({ fileName, textContent: text });
 
     console.log(`Converted PDF ${idx}/${totalPDFs}`);
-  };
+  }
 
   return convertedPDFs;
 };
 
-const tokenizeText = (observations, stemmer) =>  observations.map(({ fileName, textContent: sample }) => {
+const tokenizeText = (observations, stemmer) =>
+  observations.map(({ fileName, textContent: sample }) => {
     const lower = sample.toLowerCase();
     const textWithoutSymbols = lower.replace(/[^a-zA-Z\s]+/g, '');
     const stemmedWords = stemmer.tokenizeAndStem(textWithoutSymbols);
-    return { fileName, textContent: removeStopwords(stemmedWords, eng) }
+    return { fileName, textContent: removeStopwords(stemmedWords, eng) };
   });
-  
+
 const readFilesFromDir = async (directory, recursive = false) => {
   const files = fs.readdirSync(directory, { withFileTypes: true });
 
