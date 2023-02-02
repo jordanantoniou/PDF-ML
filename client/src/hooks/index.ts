@@ -16,7 +16,7 @@ const useClassifyUpload = (
   isLoading: boolean;
   isError: boolean;
   isSuccess: boolean;
-  data: { classifications: Classification[] };
+  data: Classification[];
 } => {
   const formData = new FormData();
   [...files].forEach((file) => formData.append('files', file));
@@ -33,15 +33,11 @@ const useTrain = () => {
   return { isLoading, isError, data };
 };
 
-const useFetchAll = ({
-  onSuccess
-}: {
+type SuccessType = {
   onSuccess: (data: { classifications: Classification[] }) => void;
-}): {
-  isLoading: boolean;
-  isError: boolean;
-  isSuccess: boolean;
-} => {
+};
+
+const useFetchAll = ({ onSuccess }: SuccessType) => {
   const { isLoading, isError, isSuccess } = useQuery(
     'classifications',
     () => fetch(`${serverAddress}/classification/findAll`).then((res) => res.json()),

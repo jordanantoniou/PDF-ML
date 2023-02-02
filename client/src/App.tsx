@@ -1,4 +1,4 @@
-import { ChangeEvent, ReactElement, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, SyntheticEvent, useEffect, useRef, useState } from 'react';
 import './App.css';
 import { TuneIcon, ShapeIcon, GithubIcon } from './assets/icons';
 import { Button } from './components/Button/Button';
@@ -20,7 +20,8 @@ function App() {
 function Dashboard() {
   const [files, setFiles] = useState<FileList>();
   const [existingClassifications, setExistingClassifications] = useState<Classification[]>([]);
-
+  const [filteredClassifications, setFilteredClassifications] = useState<Classification[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +40,22 @@ function Dashboard() {
     onSuccess: (data) => setExistingClassifications(data.classifications)
   });
 
+  const handleSearchChange = (e: SyntheticEvent) => {
+    const value = (e.target as HTMLInputElement).value || '';
+    setSearchTerm(value);
+  };
+
+  useEffect(() => {
+    if (searchTerm === '') {
+      setFilteredClassifications(existingClassifications);
+    } else {
+      const filtered = existingClassifications.filter(({ fileName }) =>
+        fileName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredClassifications(filtered);
+    }
+  }, [searchTerm]);
+
   return (
     <div className="App flex flex-col place-items-center gap-20 bg-base-1">
       <div className="w-full p-4">
@@ -47,12 +64,7 @@ function Dashboard() {
         </a>
       </div>
       <div className="grid grid-cols-2 gap-x-10">
-        <Button
-          title="Train"
-          subtitle="Retrain model from scratch"
-          onClick={() => {}}
-          icon={<TuneIcon />}
-        />
+        <Button title="Train" subtitle="Retrain model from scratch" icon={<TuneIcon />} />
         <Button
           title="Classify"
           subtitle="Upload a document to classify"
@@ -65,20 +77,22 @@ function Dashboard() {
       {!isLoading && isSuccess ? (
         <div className="flex flex-col gap-3">
           <div className="grid w-full place-items-end">
-            <Search />
+            <Search onChange={handleSearchChange} value={searchTerm} />
           </div>
           <Table>
             <Table.Header titles={['Name', 'Class', 'Last classified']} />
-            {existingClassifications.map((classification) => (
-              <Table.Row
-                key={classification['_id']}
-                values={[
-                  classification.fileName,
-                  classification.classification,
-                  classification.lastUpdate
-                ]}
-              />
-            ))}
+            {(searchTerm ? filteredClassifications : existingClassifications).map(
+              (classification) => (
+                <Table.Row
+                  key={classification['_id']}
+                  values={[
+                    classification.fileName,
+                    classification.classification,
+                    classification.lastUpdate
+                  ]}
+                />
+              )
+            )}
           </Table>
         </div>
       ) : (

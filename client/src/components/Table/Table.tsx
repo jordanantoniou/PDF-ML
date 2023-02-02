@@ -10,7 +10,7 @@ interface TableProps {
 const Table = ({ children }: TableProps) => {
   const [headerRow, ...rest] = children;
   return (
-    <div className=" overflow-hidden rounded-md  border border-base-3">
+    <div className=" table-fixed overflow-hidden rounded-md  border border-base-3">
       <table className="table-auto items-start divide-base-3 text-left">
         {headerRow}
         <tbody className="divide-y divide-base-3">{rest}</tbody>

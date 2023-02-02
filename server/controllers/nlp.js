@@ -20,4 +20,12 @@ const train = async (req, res, next) => {
   }
 };
 
-export default { classify, train };
+// const add = async (req, res, next) => {
+//   try {
+    
+//   } catch (e) {
+//     next(e)
+//   }
+// }
+
+export default { classify, train, add };

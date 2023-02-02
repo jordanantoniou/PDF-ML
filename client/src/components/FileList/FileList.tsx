@@ -6,7 +6,7 @@ import { animate } from '@motionone/dom';
 const FileList = ({ files }: { files: FileList }) => {
   let classifications = [...files].map((file: File) => ({
     name: file.name,
-    classification: undefined
+    classification: ''
   }));
 
   const { isLoading, isError, isSuccess, data } = useClassifyUpload(files);
